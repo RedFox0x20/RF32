@@ -20,13 +20,16 @@ Image:
 	@dd if=Build/Bootloader_Stage1.bin \
 	   of=${OS_DISK_IMAGE} \
 	   bs=512 
-	@dd if=SampleData.txt   \
+	@dd if=Build/Bootloader_Stage2.bin \
 		of=${OS_DISK_IMAGE} \
 		bs=512              \
 		seek=1
 
-Bootloader: Bootloader_Stage1
+Bootloader: Bootloader_Stage1 Bootloader_Stage2
 
 Bootloader_Stage1: Source/Bootloader/Stage1.asm
 	nasm -fbin $< -o Build/Bootloader_Stage1.bin
+
+Bootloader_Stage2: Source/Bootloader/Stage2.asm
+	nasm -fbin $< -o Build/Bootloader_Stage2.bin
 

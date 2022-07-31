@@ -70,12 +70,12 @@ Boot_Load:                             ;Load stage 2 routine
 	jmp Boot_Error                     ;TEMP : Just error
 	;jmp Boot_Load                      ;Perform the next load iteration
 
-Boot_Success:
-	mov ah, 0x0E
-	mov al, 'Y'
-	xor bx, bx
-	int 0x10
-	jmp Boot_Halt
+Boot_Success:                          ;Successful load routine
+	mov ah, 0x0E                       ;0x10 print command
+	mov al, 'S'                        ;Character S to print
+	xor bx, bx                         ;Screen 0
+	int 0x10                           ;Call BIOS int 0x10
+	jmp 0x0000:STAGE_2_LOAD_ADDR       ;Jump to the loaded seconds stage
 
 
 Boot_Error:
@@ -93,7 +93,7 @@ Boot_Halt:
 ; DATA
 ;------------------------------------------------------------------------------;
 BootDevice:  db 0xFF
-LoadCounter: db 18
+LoadCounter: db 17 
 LoadSize:    db 17
 LoadSector:  db 2
 LoadCylinder:dw 0
