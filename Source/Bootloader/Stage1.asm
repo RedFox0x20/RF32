@@ -4,21 +4,25 @@
 [BITS 16]                              ;Tell NASM to use 16 bit mode
 [ORG 0x7C00]                           ;Tell NASM our offset position
 
-%define STAGE_2_LOAD_ADDR 0x8000       ;Stage 2 will be loaded to this address
-%define STACK_TOP 0x8000               ;Define a stack starting from 0x8000
+%define STAGE_2_LOAD_ADDR 0x2500       ;Stage 2 will be loaded to this address
+%define STACK_TOP 0x2500               ;Define a stack starting from 0x8000
                                        ; this will provide a 30k stack for
 									   ; protected mode
 
 Boot:
 	mov byte [BootDevice], dl          ;BIOS commonly sets dl to be the boot dev
 
+Boot_Init:
+	mov ax, 0x0003                     ;Enter known 80x25 display mode
+	int 0x10                           ;Call BIOS int 0x10
+
 	cli                                ;Disable interrupts
 	xor ax, ax                         ;Clear AX
 	mov ds, ax                         ;Clear DS
 	mov es, ax                         ;Clear ES
-
-Boot_Stack_Setup:
-	mov ss, ax                         ;Set the stack segment
+	mov fs, ax                         ;Clear FS
+	mov gs, ax                         ;Clear GS
+	mov ss, ax                         ;Clear SS
 	mov sp, STACK_TOP                  ;Set the stack pointer
 	mov bp, STACK_TOP                  ;Set the stack base
 	sti                                ;Enable interrupts
@@ -55,7 +59,7 @@ Boot_Load:                             ;Load stage 2 routine
 	sub al, bl                         ;LoadCounter - LoadSize
 	jle Boot_Success                   ;If <= zero, load finished
 
-	; Foundation for loading more than 17 sectors
+	;Foundation for loading more than 17 sectors
 	;mov word [LoadCounter], ax         ;Set the new counter value
 	;mov byte [LoadSize], 18            ;Default back to 18 sectors
 	;mov byte [LoadSector], 1           ;Default to reading from the first sector
