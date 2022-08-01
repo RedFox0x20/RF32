@@ -1,50 +1,63 @@
 .PHONY: all
 
+CCFLAGS:=-fno-pic -nostdlib -nolibc -ffreestanding -c -Wall -m32 -ISource
+
 OS_DISK_IMAGE:=Build/RF32.img
-CCFLAGS:=-fno-pic -nostdlib -nolibc -ffreestanding -c -Wall -m32
+BOOTLOADER_SOURCE:=$(wildcard Source/Bootloader/*.asm)
+BOOTLOADER_OBJECTS:=$(addsuffix .bin, \
+						$(patsubst Source%, Build%, $(BOOTLOADER_SOURCE)))
+KERNEL_SOURCE:=$(wildcard Source/Kernel/*.asm) $(wildcard Source/Kernel/*.c)
+KERNEL_OBJECTS:=$(addsuffix .o, $(patsubst Source%, Build%, $(KERNEL_SOURCE)))
+KERNEL_LINKED:=Build/Kernel.bin
 
-all: Bootloader Kernel Image
+all: Dirs Bootloader Kernel Image
 
-run:
+run: all run_nobuild
+
+run_nobuild:
 	qemu-system-i386 -fda ${OS_DISK_IMAGE}
 
-debug:
+debug: all debug_nobuild
+
+debug_nobuild:
 	qemu-system-i386 -fda $(OS_DISK_IMAGE) -s -S --monitor stdio 
+
+clean:
+	@rm -rf Build
+
+Dirs:
+	@mkdir -p Build Build/Bootloader Build/Kernel
 
 Image:
 	@echo -e "\nCreating blank disk image ${OS_DISK_IMAGE}"
 	@dd if=/dev/zero \
-	   of=${OS_DISK_IMAGE} \
-	   bs=512 \
-	   count=2880 
+		of=${OS_DISK_IMAGE} \
+		bs=512 \
+		count=2880 
 	@echo -e "\nWriting Bootsector"
-	@dd if=Build/Bootloader_Stage1.bin \
+	@dd if=Build/Bootloader/Stage1.asm.bin \
 	   of=${OS_DISK_IMAGE} \
 	   bs=512 
-	@dd if=Build/Bootloader_Stage2.bin \
+	@dd if=Build/Bootloader/Stage2.asm.bin \
 		of=${OS_DISK_IMAGE} \
 		bs=512              \
 		seek=1
 	@dd if=Build/Kernel.bin \
-		   of=${OS_DISK_IMAGE} \
-		   bs=512 \
-		   seek=2
+		of=${OS_DISK_IMAGE} \
+		bs=512 \
+		seek=2
 
-Bootloader: Bootloader_Stage1 Bootloader_Stage2
+Bootloader: $(BOOTLOADER_OBJECTS) 
 
-Bootloader_Stage1: Source/Bootloader/Stage1.asm
-	nasm -fbin $< -o Build/Bootloader_Stage1.bin
+Build/Bootloader/%.asm.bin: Source/Bootloader/%.asm
+	nasm -fbin $< -o $@
 
-Bootloader_Stage2: Source/Bootloader/Stage2.asm
-	nasm -fbin $< -o Build/Bootloader_Stage2.bin
-
-Kernel: KEntry KMain
+Kernel: $(KERNEL_OBJECTS) 
 	ld -TLinker/Kernel.ld \
-		-o Build/Kernel.bin \
-		Build/KEntry.o Build/KMain.o
+		-o ${KERNEL_LINKED} ${KERNEL_OBJECTS}
 
-KEntry: Source/Kernel/KEntry.asm
-	nasm -felf32 $< -o Build/KEntry.o
+Build/Kernel/%.c.o: Source/Kernel/%.c
+	gcc ${CCFLAGS} $< -o $@
 
-KMain: Source/Kernel/Kernel.c
-	gcc ${CCFLAGS} $< -o Build/KMain.o
+Build/Kernel/%.asm.o: Source/Kernel/%.asm
+	nasm -felf32 $< -o $@

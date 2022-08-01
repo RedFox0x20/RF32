@@ -6,11 +6,11 @@ SECTIONS
 	. = 0x2700;
 	.text : 
 	{
-		Build/KEntry.o(*.text)
+		Build/Kernel/KEntry.asm.o(*.text)
 	}
 	.data :
 	{
-		Build/KEntry.o(*.data)
+		Build/Kernel/KEntry.asm.o(*.data)
 	}
 	.text :
 	{
