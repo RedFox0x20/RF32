@@ -2,7 +2,15 @@
 
 # CONFIG
 CC:=gcc
-CCFLAGS:=-fno-pic -nostdlib -nolibc -ffreestanding -c -Wall -m32 -ISource
+CCFLAGS:=-fno-pic \
+		 -nostdlib \
+		 -nolibc \
+		 -ffreestanding \
+		 -c \
+		 -Wall \
+		 -m32 \
+		 -std=c99 \
+		 -ISource
 
 ASM:=nasm
 

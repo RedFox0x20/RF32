@@ -5,6 +5,7 @@
 [ORG 0x2500]                           ;Stage 2 will be loaded to this address
                                        ; so the offset is required
 %define MEMORY_MAP_ADDR 0x7E00
+%define KERNEL_ENTRY 0x2700
 
 Stage2_Entry:                          ;Stage 2 entry point
 	mov ah, 0x0E                       ;0x10 print command
@@ -12,6 +13,7 @@ Stage2_Entry:                          ;Stage 2 entry point
 	xor bx, bx                         ;Screen 0
 	int 0x10                           ;Call BIOS int 0x10
 
+	sti
 	call CreateMemoryMap               ;Call for a memory map to be created
 
 Stage2_EnterPM:
@@ -118,12 +120,10 @@ Stage2_Entry32:                        ;32 bit entry point, interrupts are
 
 	call EnableA20                     ;Enable the A20 addressing line
 
-	sti                                ;Enable interrupts
-
 	mov byte [0xB8008], '3'            ;Write to character 8 of the video memory
 	mov byte [0xB800A], '2'            ;Write to character 10 of the video mem
 
-	jmp 0x2700
+	jmp KERNEL_ENTRY
 
 Stage2_Halt32:                         ;32 bit halt routine
 	cli                                ;Disable interrupts
