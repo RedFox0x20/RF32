@@ -4,6 +4,7 @@
 #define NULL (void*)0
 #define SYS_CLI() __asm__ volatile ("cli")
 #define SYS_STI() __asm__ volatile ("sti")
+#define SYS_HLT() __asm__ volatile ("hlt")
 
 void outb(
 		unsigned short port,

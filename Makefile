@@ -10,9 +10,12 @@ CCFLAGS:=-fno-pic \
 		 -Wall \
 		 -m32 \
 		 -std=c99 \
-		 -ISource
+		 -ISource \
+		 -fno-stack-protector #\
+#-mno-sse -DNO_SSE # If necessary
 
 ASM:=nasm
+ASMFLAGS:= #-DNO_SSE
 
 LD:=ld
 
@@ -38,7 +41,7 @@ run_nobuild:
 debug: all debug_nobuild
 
 debug_nobuild:
-	qemu-system-i386 -fda $(OS_DISK_IMAGE) -s -S --monitor stdio 
+	qemu-system-i386 -fda $(OS_DISK_IMAGE) -no-reboot -d cpu_reset -s -S --monitor stdio 
 
 # Build/
 clean:
@@ -71,7 +74,7 @@ Image:
 Bootloader: $(BOOTLOADER_OBJECTS) 
 
 Build/Bootloader/%.asm.bin: Source/Bootloader/%.asm
-	${ASM} -fbin $< -o $@
+	${ASM} ${ASMFLAGS} -fbin $< -o $@
 
 # KERNEL
 Kernel: $(KERNEL_OBJECTS) 
@@ -82,4 +85,4 @@ Build/Kernel/%.c.o: Source/Kernel/%.c
 	${CC} ${CCFLAGS} $< -o $@
 
 Build/Kernel/%.asm.o: Source/Kernel/%.asm
-	${ASM} -felf32 $< -o $@
+	${ASM} ${ASMFLAGS} -felf32 $< -o $@

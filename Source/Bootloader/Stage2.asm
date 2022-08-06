@@ -13,6 +13,33 @@ Stage2_Entry:                          ;Stage 2 entry point
 	xor bx, bx                         ;Screen 0
 	int 0x10                           ;Call BIOS int 0x10
 
+%ifndef NO_SSE
+Stage2_SSE_Tests:
+	; Check for Intel SSE extensions
+	; If we know there are some changes to make in the Makefile so everything
+	; will compile and work as expected
+	mov eax, 0x1
+	cpuid
+	test edx, 1<<25
+	jz Stage2_NO_SSE 
+
+	; Enable SSE
+	mov eax, cr0
+	and ax, 0xFFFB                     ;Clear coprocessor emulation CR0.EM
+	or ax, 0x2			               ;Set coprocessor monitoring  CR0.MP
+	mov cr0, eax
+	mov eax, cr4
+	or ax, 3 << 9                      ;Set CR4.OSFXSR and CR4.OSXMMEXCPT
+	                                   ; at the same time
+	mov cr4, eax
+%endif
+	
+	mov ax, 0x0F00                     ;Get current video mode BIOS command
+	xor bx, bx
+	int 0x10
+	mov byte [VIDEO_MODE], al          ;Store video mode data
+	mov byte [VIDEO_COLS], ah
+
 	sti
 	call CreateMemoryMap               ;Call for a memory map to be created
 
@@ -23,6 +50,8 @@ Stage2_EnterPM:
 	mov eax, cr0                       ;Load the cr0 register into eax
 	or eax, 1                          ;Set the protected mode flag
 	mov cr0, eax                       ;Load cr0 with the new value
+
+
 
 	jmp 0x08:Stage2_Entry32            ;Jump into the 32 bit section
 
@@ -75,6 +104,24 @@ CreateMemoryMap:
 	pop bp                             ;Restore bp
 	ret                                ;Return
 
+noSSE:
+	
+%ifndef NO_SSE
+	; If SSE is missing write "SSE" to the screen, basic message for now.
+	; This is wrapped in an ifndef NO_SSE to save a few bytes if we have
+	; disabled the check
+Stage2_NO_SSE:
+	mov ah, 0x0E
+	mov al, 'S'
+	xor bx, bx
+	int 0x10
+	int 0x10
+
+	mov al, 'E'
+	int 0x10
+
+%endif
+
 Stage2_Halt:                           ;Stage 2 halt routine
 	cli                                ;Disable interrupts
 	hlt                                ;Halt the CPU
@@ -102,6 +149,9 @@ GDT_END:                               ;Calculated memory position for lgdt
 dw GDT_END-GDT-1
 dd GDT
 
+VIDEO_INFO:
+VIDEO_MODE: dw 0
+VIDEO_COLS: dw 0
 
 ;------------------------------------------------------------------------------;
 ; The 32 bit world is much friendlier,
@@ -122,6 +172,11 @@ Stage2_Entry32:                        ;32 bit entry point, interrupts are
 
 	mov byte [0xB8008], '3'            ;Write to character 8 of the video memory
 	mov byte [0xB800A], '2'            ;Write to character 10 of the video mem
+
+	; Push KMain arguments
+	push dword MEMORY_MAP_ADDR
+	mov eax, dword [VIDEO_INFO]
+	push eax
 
 	jmp KERNEL_ENTRY
 
