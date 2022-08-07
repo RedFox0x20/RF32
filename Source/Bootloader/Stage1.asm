@@ -15,6 +15,10 @@ Boot:
 Boot_Init:
 	mov ax, 0x0003                     ;Enter known 80x25 display mode
 	int 0x10                           ;Call BIOS int 0x10
+	mov ah, 0x01
+	mov ch, 0x20                       ;Disable the text mode cursor
+	mov cl, 1
+	int 0x10
 
 	cli                                ;Disable interrupts
 	xor ax, ax                         ;Clear AX

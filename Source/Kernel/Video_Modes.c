@@ -17,46 +17,55 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_TEXT,
 		.Mode = 0,
-		.Cols = 25,
-		.Rows = 40,
+		.Cols = 40,
+		.Rows = 25,
 		.Depth = 4,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 40 * 25 * 2
 	},
 	/* Mode 1 40x25, 16/8 colours */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_TEXT,
 		.Mode = 1,
-		.Cols = 25,
-		.Rows = 40,
+		.Cols = 40,
+		.Rows = 25,
 		.Depth = 4,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 40 * 25 * 2
 	},
 	/* Mode 2 80x25, 16/8 shades */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_TEXT,
 		.Mode = 2,
-		.Cols = 25,
-		.Rows = 80,
+		.Cols = 80,
+		.Rows = 25,
 		.Depth = 4,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 80 * 25 * 2
 	},
 	/* Mode 3 80x25, 16/8 colours */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_TEXT,
 		.Mode = 3,
-		.Cols = 25,
-		.Rows = 80,
+		.Cols = 80,
+		.Rows = 25,
 		.Depth = 4,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 80 * 25 * 2
 	},
-	/* Mode 4, 320x200 graphic, 4 colours */
+	/* Mode 4, 320x200 graphic, 4 colours
+	 * Memory layout:
+	 *  [XX][XX][XX][XX]
+	 *   P0  P1  P2  P3
+	 */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_GRAPHICS,
 		.Mode = 4,
 		.Rows = 200,
 		.Cols = 320,
 		.Depth = 2,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 200 * 320 / 4
 	},
 	/* Mode 5, 320x200 graphic, 4 shades */
 	(VIDEO_ModeInfo_t){
@@ -65,7 +74,8 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 200,
 		.Cols = 320,
 		.Depth = 2,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 200 * 320 / 4
 	},
 	/* Mode 6, 640x200 BW */
 	(VIDEO_ModeInfo_t)
@@ -75,7 +85,8 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 200,
 		.Cols = 640,
 		.Depth = 1,
-		.Memory = (void*)0xB8000
+		.Memory = (void*)0xB8000,
+		.MemorySize = 200 * 640 / 8 
 	},
 	/* Mode 80x25 9x14 chars TTL Mono */
 	(VIDEO_ModeInfo_t){
@@ -84,7 +95,8 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 25,
 		.Cols = 45,
 		.Depth = 2,
-		.Memory = (void*)0xB0000
+		.Memory = (void*)0xB0000,
+		.MemorySize = 25 * 45 * 2
 	},
 	/* Modes 8,9,a,b,c are PCjr or Reserved */
 	VIDEO_INVALID_MODE,
@@ -92,8 +104,12 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 	VIDEO_INVALID_MODE,
 	VIDEO_INVALID_MODE,
 	VIDEO_INVALID_MODE,
-	/* VGA MODES */
-	/* Mode 0x0D 320x200 16 colours */
+	/* EGA/VGA MODES
+     * The EGA modes use different planes that are combined to create the output
+	 * bits
+	 */
+	/* Mode 0x0D 320x200 16 colours
+	 */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_GRAPHICS,
 		.Mode = 0x0D,
@@ -102,14 +118,15 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Depth = 4,
 		.Memory = (void*)0xA0000,
 	},
-	/* Mode 0x0E 640x200 16 colours */
+	/* Mode 0x0E 640x200 16 colours 
+	 */
 	(VIDEO_ModeInfo_t){
 		.Type = VIDEO_MODE_TYPE_GRAPHICS,
 		.Mode = 0x0E,
 		.Rows = 200,
 		.Cols = 640,
 		.Depth = 4,
-		.Memory = (void*)0xA0000
+		.Memory = (void*)0xA0000,
 	},
 	/* Mode 0x0F 640x350 3 BW */
 	(VIDEO_ModeInfo_t){
@@ -118,7 +135,7 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 350,
 		.Cols = 640,
 		.Depth = 2,
-		.Memory = (void*)0xA0000
+		.Memory = (void*)0xA0000,
 	},
 	/* Mode 0x10 640x350 4 or 16 colours */
 	(VIDEO_ModeInfo_t){
@@ -127,7 +144,7 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 350,
 		.Cols = 640,
 		.Depth = 4,
-		.Memory = (void*)0xA0000
+		.Memory = (void*)0xA0000,
 	},
 	/* Mode 0x11 640x480 BW */
 	(VIDEO_ModeInfo_t){
@@ -136,7 +153,7 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 480,
 		.Cols = 640,
 		.Depth = 1,
-		.Memory = (void*)0xA0000
+		.Memory = (void*)0xA0000,
 	},
 	/* Mode 0x12 640x480 16 colours */
 	(VIDEO_ModeInfo_t){
@@ -145,7 +162,7 @@ VIDEO_ModeInfo_t VIDEO_ModesList[] =
 		.Rows = 480,
 		.Cols = 640,
 		.Depth = 4,
-		.Memory = (void*)0xA0000
+		.Memory = (void*)0xA0000,
 	},
 	/* Mode 0x13 640x480 256 colours */
 	(VIDEO_ModeInfo_t){
