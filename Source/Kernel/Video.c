@@ -30,12 +30,6 @@ VIDEO_ModeInfo_t VIDEO_GetModeInfo(VIDEO_BIOSMode_t BIOSModeData)
 
 void VIDEO_putch(char c, char Attributes)
 {
-	if (VIDEO_TextModeData.CursorPosition > VIDEO_ModeInfo.Cols * 2 *
-			VIDEO_ModeInfo.Rows)
-	{
-		VIDEO_Scroll(1);
-	}
-
 	if (c == '\n')
 	{
 		VIDEO_TextModeData.CursorPosition += VIDEO_ModeInfo.Cols*2;
@@ -48,6 +42,12 @@ void VIDEO_putch(char c, char Attributes)
 		((char*)VIDEO_ModeInfo.Memory)[VIDEO_TextModeData.CursorPosition++] =
 			Attributes;
 	}
+    if (VIDEO_TextModeData.CursorPosition >= VIDEO_ModeInfo.Cols * 2 *
+			VIDEO_ModeInfo.Rows)
+	{
+		VIDEO_Scroll(1);
+	}
+    
 }
 
 void VIDEO_puts(char* str, char Attributes)
@@ -61,22 +61,32 @@ void VIDEO_puts(char* str, char Attributes)
 
 void VIDEO_Scroll(unsigned int n)
 {
-	for (
-			int i = VIDEO_ModeInfo.Cols * 2 * n; 
-			i < VIDEO_ModeInfo.Cols * 2 * VIDEO_ModeInfo.Rows; 
-			i++)
-	{
-		((char*)VIDEO_ModeInfo.Memory)[i-VIDEO_ModeInfo.Cols*2*n] =
-			((char*)VIDEO_ModeInfo.Memory)[i];
-	}
-	VIDEO_TextModeData.CursorPosition -= VIDEO_ModeInfo.Cols * 2 * n;
+    int i;
+    for (
+            i = VIDEO_ModeInfo.Cols * 2 * n; 
+            i < VIDEO_ModeInfo.Cols * 2 * VIDEO_ModeInfo.Rows; 
+            i++)
+    {
+        ((char*)VIDEO_ModeInfo.Memory)[i-VIDEO_ModeInfo.Cols*2*n] =
+            ((char*)VIDEO_ModeInfo.Memory)[i];
+    }
+    for (
+            i = VIDEO_ModeInfo.Cols * 2 * (VIDEO_ModeInfo.Rows-1); 
+            i < VIDEO_ModeInfo.Cols * 2 * VIDEO_ModeInfo.Rows; 
+            i++)
+    {
+
+        ((char*)VIDEO_ModeInfo.Memory)[i] = 0;
+    }
+
+    VIDEO_TextModeData.CursorPosition -= VIDEO_ModeInfo.Cols * 2 * n;
 }
 
 void VIDEO_ClearScreen(char Attributes)
 {
-	int WriteValue = ' ' << 16 | Attributes << 24 | ' ' |  Attributes << 8;
-	for (int i = 0; i < VIDEO_ModeInfo.MemorySize / sizeof(int); i++)
-	{
-		((int*)VIDEO_ModeInfo.Memory)[i] = WriteValue;
-	}
+    int WriteValue = ' ' << 16 | Attributes << 24 | ' ' |  Attributes << 8;
+    for (int i = 0; i < VIDEO_ModeInfo.MemorySize / sizeof(int); i++)
+    {
+        ((int*)VIDEO_ModeInfo.Memory)[i] = WriteValue;
+    }
 }

@@ -19,7 +19,7 @@ void KEYBOARD_Handler()
 		KEYBOARD_KEY_STATE_UP 
 		: KEYBOARD_KEY_STATE_DOWN;
 	
-	if (State == KEYBOARD_KEY_STATE_UP)
+	if (State == KEYBOARD_KEY_STATE_DOWN)
 	{
 		VIDEO_putch(Keyboard_Layout[Keycode ^ 0x80],4);
 	}
